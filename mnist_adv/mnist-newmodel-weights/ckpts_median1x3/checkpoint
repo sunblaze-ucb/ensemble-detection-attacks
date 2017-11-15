@@ -1,0 +1,3 @@
+model_checkpoint_path: "max_iters.ckpt"
+all_model_checkpoint_paths: "mnist_weights.ckpt"
+all_model_checkpoint_paths: "max_iters.ckpt"

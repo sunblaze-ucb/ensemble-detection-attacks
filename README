@@ -1,0 +1,80 @@
+# Python dependencies:
+enum34
+numpy
+scipy
+tensorflow-gpu
+tqdm
+
+For viewing examples, additionally jupyter and matplotlib
+
+# Running the attacks
+
+## Feature squeezing
+
+### Setup, CIFAR-10
+
+    # Set up the pre-trained weights
+    ln -s "$PWD/resnet_model" /tmp
+    # Extract a batch of images to a numpy array
+    cd models
+    python resnet/save-unquantized.py \
+        --eval_data_path=cifar10/test_batch.bin \
+        --log_root=/tmp/resnet_model \
+        --eval_dir=/tmp/resnet_model/test \
+        --mode=eval \
+        --dataset='cifar10' \
+        --num_gpus=1
+
+### Color depth reduction, CIFAR-10
+
+    cd models
+    python resnet/baseline2-adv.py
+    python resnet/precision-adv-test.py
+
+Configure number of bits by changing the parameter to `reduce_precision_tf`, for example, the following reduces to 3 bits (8 levels):
+
+    x_star_quantized = squeeze.reduce_precision_tf(x_star, 8)
+
+### Spatial smoothing, CIFAR-10
+
+    cd models
+    python resnet/smoothing-adv.py
+    python resnet/smoothing-adv-test.py
+
+Configure the median filter size by changing the parameter to `median_filter`, for example, the following smooths with a 2x2 filter:
+
+    x_star_med = median.median_filter(x_star, 2, 2)
+
+### Detection, CIFAR-10
+
+    cd models
+    python resnet/combined-adv.py
+    python resnet/combined-adv-test.py
+
+### Color depth reduction, MNIST
+
+    cd mnist_adv
+    # 1-bit, 100 images, 5000 iterations, yes (1) use pretrained model
+    python quantization_no_gs.py 1 100 5000 1
+
+### Spatial smoothing, MNIST
+
+    cd mnist_adv
+    # 3x3, 100 images, 5000 iterations, yes (1) use pretrained model
+    python median.py 3 3 100 5000 1
+
+### Detection, MNIST
+
+    cd mnist_adv
+    # 1-bit, 2x2, 100 images, 150 iterations, yes (1) use pretrained model, 100 random initializations
+    python detection-onemodel.py 1 2 2 100 150 1 100
+
+## Ensemble of specialists
+
+### MNIST
+
+    cd ensemble-specialists
+    python save-originals-mnist.py
+    python adv-mmist.py
+    python adv-mnist-test.py
+
